@@ -9,7 +9,7 @@ class ReadOnly(permissions.BasePermission):
 
 
 class AuthorOrReadOnly(permissions.BasePermission):
-    '''Пермишен для вьюсетов.'''
+    """Пермишен для вьюсетов."""
 
     def has_permission(self, request, view):
         return (

@@ -1,11 +1,16 @@
-from rest_framework import viewsets, status
+from rest_framework import viewsets
 from rest_framework.pagination import LimitOffsetPagination
 from posts.models import Post, Comment, Group, Follow
 from api.serializers import (PostSerializer, CommentSerializer,
                              GroupSerializer, FollowingSerializer)
 from posts.permissions import AuthorOrReadOnly, ReadOnly
-from rest_framework.response import Response
 from rest_framework import filters
+from rest_framework import mixins
+
+
+class CreateRerieveViewSet(mixins.CreateModelMixin, mixins.ListModelMixin,
+                           mixins.RetrieveModelMixin, viewsets.GenericViewSet):
+    pass
 
 
 class PostViewSet(viewsets.ModelViewSet):
@@ -23,15 +28,12 @@ class PostViewSet(viewsets.ModelViewSet):
         return super().get_permissions()
 
 
-class GroupViewSet(viewsets.ModelViewSet):
+class GroupViewSet(viewsets.ReadOnlyModelViewSet):
     """Вьюсет для групп."""
     queryset = Group.objects.all()
     serializer_class = GroupSerializer
     pagination_class = None
     permission_classes = (ReadOnly,)
-
-    def create(self, request, *args, **kwargs):
-        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
 class CommentViewSet(viewsets.ModelViewSet):
@@ -53,11 +55,11 @@ class CommentViewSet(viewsets.ModelViewSet):
         return super().get_permissions()
 
 
-class FollowViewSet(viewsets.ModelViewSet):
+class FollowViewSet(CreateRerieveViewSet):
     serializer_class = FollowingSerializer
     pagination_class = None
     filter_backends = (filters.SearchFilter,)
-    search_fields = ('following__username',)
+    search_fields = ('following__username', 'user__username')
 
     def get_queryset(self):
         comment = Follow.objects.filter(user=self.request.user)
